@@ -28,11 +28,11 @@ import sched, time
 s = sched.scheduler(time.time, time.sleep)
 
 def periodic_poll(sc): # this must call a function that does what we want
-    bus_check.bus_time_mins() # this is broken
+    bus_check.check_bus() # this should call the main function from bus_check
     # do your stuff
-    sc.enter(2, 1, periodic_poll, (sc,)) # note this is 2 sec poll
+    sc.enter(30, 1, periodic_poll, (sc,)) # 30 sec poll, need to understand syntax
 
-s.enter(2, 1, periodic_poll, (s,)) # note this is 2 sec poll
+s.enter(30, 1, periodic_poll, (s,)) # 30 sec poll
 s.run()
 
 """
@@ -43,16 +43,3 @@ def main():
 if __name__ == '__main__':
     main()
 """
-
-timeout = 2.0 # Two seconds
-
-def doWork():
-    i = 0
-    print(i)
-    i = i + 1
-    pass
-
-l = task.LoopingCall(doWork)
-l.start(timeout) # call every two seconds
-
-reactor.run()

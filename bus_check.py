@@ -31,7 +31,7 @@
 #if __name__ == '__main__':
 #   main()
 
-from time import strftime, localtime # was not needed if use timestamp from tfl server but needed to give human time tools
+from time import strftime, localtime # needed to give human time tools
 import requests
 
 # data = json.load(urllib2.urlopen('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?StopCode1=56321&DirectionID=1&VisitNumber=1&ReturnList=StopCode1,StopPointName,LineName,DestinationText,EstimatedTime,MessageUUID,MessageText,MessagePriority,MessageType,ExpireTime'))
@@ -40,43 +40,53 @@ import requests
 # payload = {'key1': 'value1', 'StopCode1': '56321'} #form the JSON request payload from a dict
 
 # request string to tfl, note berkshire road is 56321, Gt Tichfield St is 51889
-data = requests.get('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?StopCode1=56321&DirectionID=1&VisitNumber=1&ReturnList=StopPointName,LineName,DestinationText,EstimatedTime')
 
-reply = data.text # sets the reply as a global variable
-sep = reply.split(',') # separate the reply into parts in a list
 
-def unixtime_to_human(epoch):
+def check_bus():
+    data = requests.get('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?StopCode1=56321&DirectionID=1&VisitNumber=1&ReturnList=StopPointName,LineName,DestinationText,EstimatedTime')
 
-    """
-(int) -> str
+    reply = data.text # sets the reply as a global variable
+    sep = reply.split(',') # separate the reply into parts in a list
 
-Take Unix time and return human readable time.
+    def unixtime_to_human(epoch):
+    
+        """
+    (int) -> str
+    
+    Take Unix time and return human readable time.
+    
+    >>>unix_to_human(1395595339)
+        Sun, 23 Mar 2014 17:22:19 GMT
+        """
+    
+        return strftime("%a, %d %b %Y %H:%M:%S +0000", localtime(epoch / 1000))
 
->>>unix_to_human(1395595339)
-    Sun, 23 Mar 2014 17:22:19 GMT
-    """
+    print("Bus: " + sep[4].strip('"[]')) # print the first bus number in list
+    print("Destination: " + sep[5].strip('"[]')) # print the first destination in list
+    
+    bus_time_unix = sep[6] # set bus to 1st bus arrival time, including the ] delimiter
+    bus_time_unix = int(bus_time_unix[:13]) # hack off the last character and convert to int
+    
+    tfl_time_now_unix = sep[2] # get the current UNIX time from tfl timestamp
+    tfl_time_now_unix = int(tfl_time_now_unix[:13]) # strip trailing ] and convert to int
+    
+    time_to_bus_unix =  bus_time_unix - tfl_time_now_unix # time from now until next bus as unix
+    
+    def bus_time_mins(time_to_bus):
+        return time_to_bus_unix // 1000 // 60 # convert tfl's time in milliseconds to minutes
+    
+    # Print the current TfL time to verify we're current
+    print("TfL time is: " + str(unixtime_to_human(tfl_time_now_unix)))
+    print("Next bus in: " + str(bus_time_mins(time_to_bus_unix)) + " minutes")
+#~ 
 
-    return strftime("%a, %d %b %Y %H:%M:%S +0000", localtime(epoch / 1000))
 
-print("Bus: " + sep[4].strip('"[]')) # print the first bus number in list
-print("Destination: " + sep[5].strip('"[]')) # print the first destination in list
+#~ def check_function(): # test for function call from other module when tfl feed is down
+    #~ print("hello")
 
-bus_time_unix = sep[6] # set bus to 1st bus arrival time, including the ] delimiter
-bus_time_unix = int(bus_time_unix[:13]) # hack off the last character and convert to int
-
-tfl_time_now_unix = sep[2] # get the current UNIX time from tfl timestamp
-tfl_time_now_unix = int(tfl_time_now_unix[:13]) # strip trailing ] and convert to int
-
-time_to_bus_unix =  bus_time_unix - tfl_time_now_unix # time from now until next bus as unix
-
-def bus_time_mins(time_to_bus):
-    return time_to_bus_unix // 1000 // 60 # convert tfl's time in milliseconds to minutes
-
-# Print the current TfL time to verify we're current
-print("TfL time is: " + str(unixtime_to_human(tfl_time_now_unix)))
-print("Next bus in: " + str(bus_time_mins(time_to_bus_unix)) + " minutes")
 
 """ ## Debug bits ##
+check_bus()
 # print(reply) # print a whole reply for debug 
 # print(sep) # print the whole list for debug 
 # print(bus_time) # print unix time for bus arrival for debug
