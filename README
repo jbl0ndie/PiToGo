@@ -1,0 +1,8 @@
+This is PiToGo
+--------------
+
+
+Eventually this will be a bunch of useful travel information that's
+retrived by a Raspberry Pi and then rendered out, initially locally via
+a PiFace LCD screen and eventually over the network.
+
