@@ -36,15 +36,23 @@ import requests
 
 # data = json.load(urllib2.urlopen('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?StopCode1=56321&DirectionID=1&VisitNumber=1&ReturnList=StopCode1,StopPointName,LineName,DestinationText,EstimatedTime,MessageUUID,MessageText,MessagePriority,MessageType,ExpireTime'))
 
-# payload = {'key1': 'value1', 'key2': 'value2'}
-# payload = {'key1': 'value1', 'StopCode1': '56321'} #form the JSON request payload from a dict
+stop_code = 56321 # in the future, this will be selectable or something
+
+# payload = {'key1': 'value1', 'key2': 'value2'} example from requests docs
+
+payload = {'StopCode1': stop_code} #form the JSON request payload from a dict
+#~ reply = requests.get("http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?DirectionID=1&VisitNumber=1&ReturnList=StopPointName,LineName,DestinationText,EstimatedTime", params=payload) 
+"""
+I couldn't make requests.get accept dict value separated by commas
+so have hard coded it. The bits I want to change are stop numbers anyway.
+"""
 
 # request string to tfl, note berkshire road is 56321, Gt Tichfield St is 51889
 
 
 def check_bus():
-    data = requests.get('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?StopCode1=56321&DirectionID=1&VisitNumber=1&ReturnList=StopPointName,LineName,DestinationText,EstimatedTime')
-
+    data = requests.get("http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?DirectionID=1&VisitNumber=1&ReturnList=StopPointName,LineName,DestinationText,EstimatedTime", params=payload) 
+    
     reply = data.text # sets the reply as a global variable
     sep = reply.split(',') # separate the reply into parts in a list
 
@@ -78,19 +86,21 @@ def check_bus():
     # Print the current TfL time to verify we're current
     print("TfL time is: " + str(unixtime_to_human(tfl_time_now_unix)))
     print("Next bus in: " + str(bus_time_mins(time_to_bus_unix)) + " minutes")
-#~ 
-
+    
 
 #~ def check_function(): # test for function call from other module when tfl feed is down
     #~ print("hello")
 
 
-""" ## Debug bits ##
-check_bus()
-# print(reply) # print a whole reply for debug 
-# print(sep) # print the whole list for debug 
-# print(bus_time) # print unix time for bus arrival for debug
-# print(time_now) # print unix time now for debug
+if __name__ == '__main__':
+	print('## Now running bus_check in debug mode ## \n')
+	check_bus() # get a normal request
 
-# print("time to bus " + str(time_to_bus)) print time in UNIX timestamp
+""" ## Spare debug bits ##
+print(reply) # print a whole reply for debug 
+print(sep) # print the whole list for debug 
+print(bus_time) # print unix time for bus arrival for debug
+print(time_now) # print unix time now for debug
+
+print("time to bus " + str(time_to_bus)) print time in UNIX timestamp
 """

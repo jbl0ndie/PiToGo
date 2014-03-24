@@ -27,6 +27,8 @@ import sched, time
 
 s = sched.scheduler(time.time, time.sleep)
 
+bus_check.check_bus() # initial request from TfL
+
 def periodic_poll(sc): # this must call a function that does what we want
     bus_check.check_bus() # this should call the main function from bus_check
     # do your stuff
